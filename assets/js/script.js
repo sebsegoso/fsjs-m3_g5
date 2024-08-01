@@ -1,5 +1,16 @@
-// helpers
+// Helpers
+/**
+ * Helper para obtener un elemento por su ID.
+ * @param {string} id - El ID del elemento.
+ * @returns {HTMLElement} - El elemento HTML.
+ */
 const elementById = (id) => document.getElementById(id);
+
+/**
+ * Formatea un valor numérico como CLP (peso chileno).
+ * @param {number} value - El valor numérico.
+ * @returns {string} - El valor formateado como CLP.
+ */
 function toCLP(value) {
   const formatter = new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 0,
@@ -7,58 +18,68 @@ function toCLP(value) {
   return formatter.format(value);
 }
 
-//
-const form = document.getElementById("sueldoForm");
-const resultContainer = document.getElementById("resultado");
+// DOM elements
+const form = elementById("sueldoForm");
+const resultContainer = elementById("resultado");
 
+// Inputs data
+/* Para una validación más dinámica usaremos este objeto,
+ *  cada propiedad será su key em el formulario, dentro cada propiedad cumple una función */
 const formInputs = {
   nombre: {
-    inputId: "nombre",
-    label: "nombre",
-    helpId: "nombreHelp",
-    required: true,
-    type: "text",
+    inputId: "nombre" /* id del input */,
+    helpId: "nombreHelp" /* id del mensaje de error */,
+    label: "nombre" /* etiqueta para un mejor mensaje de error */,
+    required: true /* si es requerido o no */,
+    type: "text" /* text | number | boolean */,
   },
   apellidos: {
     inputId: "apellidos",
-    label: "apellidos",
     helpId: "apellidosHelp",
+    label: "apellidos",
     required: true,
     type: "text",
   },
   sueldoActual: {
     inputId: "sueldoActual",
-    label: "sueldo actual",
     helpId: "sueldoActualHelp",
+    label: "sueldo actual",
     required: true,
     type: "number",
   },
   sueldoSemestreAnterior: {
     inputId: "sueldoSemestreAnterior",
-    label: "sueldo del semestre anterior",
     helpId: "sueldoSemestreAnteriorHelp",
+    label: "sueldo del semestre anterior",
     required: true,
     type: "number",
   },
   tieneCargas: {
     inputId: "tieneCargas",
-    label: "tiene cargas",
     helpId: "tieneCargasHelp",
+    label: "tiene cargas",
     required: false,
     type: "boolean",
   },
   cantidadCargas: {
     inputId: "cantidadCargas",
-    label: "cantidad de cargas",
     helpId: "cantidadCargasHelp",
+    label: "cantidad de cargas",
     required: false,
     type: "number",
   },
 };
 
+/**
+ * Limpia el contenedor de resultados.
+ */
 const clearResult = () => {
   resultContainer.innerHTML = "";
 };
+
+/**
+ * Limpia los mensajes de ayuda de todos los inputs.
+ */
 const clearHelpMessages = () => {
   for (let key in formInputs) {
     const helpElement = elementById(formInputs[key].helpId);
@@ -67,7 +88,10 @@ const clearHelpMessages = () => {
   }
 };
 
-// input de cantidad de cargas solo se activa si tiene cargas
+// Manejo de cambios en el checkbox "tiene cargas"
+/**
+ * Habilita o deshabilita el input de cantidad de cargas basado en el estado del checkbox "tiene cargas".
+ */
 const handleCheckboxChange = function () {
   const tieneCargas = elementById(formInputs.tieneCargas.inputId).checked;
   const cantidadCargasInput = elementById(formInputs.cantidadCargas.inputId);
@@ -82,6 +106,11 @@ const handleCheckboxChange = function () {
   }
 };
 
+/**
+ * Valida el formulario.
+ * @param {Object} form - Los datos del formulario.
+ * @returns {boolean} - Verdadero si el formulario es válido, falso de lo contrario.
+ */
 const validateForm = (
   form = {
     nombre: "",
@@ -92,20 +121,18 @@ const validateForm = (
     cantidadCargas: 0,
   }
 ) => {
-  // validacion de campos requeridos
+  // Validación de campos requeridos
   let valid = true;
   for (let fieldKey in formInputs) {
     if (formInputs[fieldKey].required && !form[fieldKey]) {
       const helpTag = elementById(formInputs[fieldKey].helpId);
-
       helpTag.innerHTML = `Ingresa ${formInputs[fieldKey].label}`;
-
       valid = false;
     }
   }
 
   if (form.tieneCargas && !form.cantidadCargas) {
-    const helpTag = document.getElementById(`cantidadCargasHelp`);
+    const helpTag = elementById("cantidadCargasHelp");
     helpTag.innerHTML = `Ingresa cuántas cargas tienes`;
     valid = false;
   }
@@ -113,9 +140,12 @@ const validateForm = (
   return valid;
 };
 
+/**
+ * Obtiene los datos del formulario y los agrupa en un objeto.
+ * @returns {Object} - Los datos del formulario.
+ */
 const getFormData = () => {
-  const formData =
-    {}; /* objeto para agrupar los valores del form en un solo objeto */
+  const formData = {}; // Objeto para agrupar los valores del formulario
 
   for (let key in formInputs) {
     const input = elementById(formInputs[key].inputId);
@@ -136,6 +166,13 @@ const getFormData = () => {
   return formData;
 };
 
+/**
+ * Calcula el monto de la asignación familiar.
+ * @param {number} sueldoBasePromedioSemestreAnterior - El sueldo base promedio del semestre anterior.
+ * @param {boolean} tieneCargas - Indica si el trabajador tiene cargas.
+ * @param {number} cantidadCargas - La cantidad de cargas.
+ * @returns {number} - El monto de la asignación familiar.
+ */
 const calculateAssignment = (
   sueldoBasePromedioSemestreAnterior = 0,
   tieneCargas = false,
@@ -162,6 +199,10 @@ const calculateAssignment = (
   return monto * cantidadCargas;
 };
 
+/**
+ * Muestra el resultado del cálculo de la asignación familiar.
+ * @param {Object} params - Los datos del formulario y el monto de la asignación familiar.
+ */
 const showResult = ({
   nombre = "",
   apellidos = "",
@@ -191,6 +232,10 @@ const showResult = ({
       `;
 };
 
+/**
+ * Maneja el envío del formulario.
+ * @param {Event} event - El evento de envío del formulario.
+ */
 const handleSubmit = function (event) {
   event.preventDefault();
   clearResult();
@@ -211,7 +256,7 @@ const handleSubmit = function (event) {
   form.reset();
 };
 
-// listeners
+// Listeners
 elementById(formInputs.tieneCargas.inputId).addEventListener(
   "change",
   handleCheckboxChange
